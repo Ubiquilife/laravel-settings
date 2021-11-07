@@ -208,12 +208,12 @@ class DatabaseSettingStore extends SettingStore
 			foreach ($data as $key => $value) {
 				$dbData[] = array_merge(
 					$this->extraColumns,
-					array($this->keyColumn => $key, $this->valueColumn => $value)
+					array('id' => \Str::uuid(), $this->keyColumn => $key, $this->valueColumn => $value)
 				);
 			}
 		} else {
 			foreach ($data as $key => $value) {
-				$dbData[] = array($this->keyColumn => $key, $this->valueColumn => $value);
+				$dbData[] = array('id' => \Str::uuid(), $this->keyColumn => $key, $this->valueColumn => $value);
 			}
 		}
 
