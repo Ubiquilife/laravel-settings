@@ -67,6 +67,9 @@ class ServiceProvider extends BaseServiceProvider
             $this->publishes([
                 __DIR__.'/migrations/2015_08_25_172600_create_settings_table.php' => database_path('migrations/'.date('Y_m_d_His').'_create_settings_table.php')
             ], 'migrations');
+            $this->publishes([
+                __DIR__.'/migrations/2026_01_22_000001_add_settable_columns_to_settings_table.php' => database_path('migrations/'.date('Y_m_d_His', time() + 1).'_add_settable_columns_to_settings_table.php')
+            ], 'migrations');
         } else {
             $this->app['config']->package(
                 'anlutro/l4-settings', __DIR__ . '/config', 'anlutro/l4-settings'

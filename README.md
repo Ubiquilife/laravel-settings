@@ -123,6 +123,24 @@ Setting::setConstraint(function($query, $insert) {
 ?>
 ```
 
+#### Polymorphic model settings (settable_type/settable_id)
+
+The database driver can scope settings to any Eloquent model when your `settings` table has `settable_type` and `settable_id` columns (publish the provided migration).
+
+```php
+$org = Organisation::first();
+
+// Scope to a model instance
+Setting::forModel($org)->set('billing.currency', 'usd');
+$currency = Setting::forModel($org)->get('billing.currency', 'usd');
+
+// Or set context explicitly
+Setting::setContext(\App\Models\User::class, $userId)->set('ui.theme', 'dark');
+
+// Return to global (unscoped) settings
+Setting::clearContext();
+```
+
 ### Custom stores
 
 This package uses the Laravel `Manager` class under the hood, so it's easy to add your own custom session store driver if you want to store in some other way. All you need to do is extend the abstract `SettingStore` class, implement the abstract methods and call `Setting::extend`.

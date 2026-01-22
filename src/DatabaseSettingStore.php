@@ -10,6 +10,7 @@
 namespace anlutro\LaravelSettings;
 
 use Illuminate\Database\Connection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 
 class DatabaseSettingStore extends SettingStore
@@ -56,6 +57,13 @@ class DatabaseSettingStore extends SettingStore
 	 */
 	protected $extraColumns = array();
 
+    /**
+     * Current polymorphic context columns.
+     *
+     * @var array
+     */
+    protected $context = [];
+
 	/**
 	 * @param \Illuminate\Database\Connection $connection
 	 * @param string                         $table
@@ -101,9 +109,9 @@ class DatabaseSettingStore extends SettingStore
 	/**
 	 * Set the query constraint.
 	 *
-	 * @param \Closure $callback
+	 * @param \Closure|null $callback
 	 */
-	public function setConstraint(\Closure $callback)
+	public function setConstraint(?\Closure $callback = null)
 	{
 		$this->data = array();
 		$this->loaded = false;
@@ -119,6 +127,60 @@ class DatabaseSettingStore extends SettingStore
 	{
 		$this->extraColumns = $columns;
 	}
+
+    /**
+     * Scope settings to a specific model (polymorphic).
+     *
+     * @param \Illuminate\Database\Eloquent\Model $model
+     * @return $this
+     */
+    public function forModel(Model $model)
+    {
+        return $this->setContext(get_class($model), $model->getKey());
+    }
+
+    /**
+     * Scope settings to a specific morph type/id pair.
+     *
+     * @param string $settableType
+     * @param mixed  $settableId
+     * @return $this
+     */
+    public function setContext(string $settableType, $settableId)
+    {
+        $this->context = [
+            'settable_type' => $settableType,
+            'settable_id' => $settableId,
+        ];
+
+        // Apply context to reads and writes
+        $this->setExtraColumns($this->context);
+        $this->setConstraint(function ($query) {
+            foreach ($this->context as $key => $value) {
+                $query->where($key, '=', $value);
+            }
+        });
+
+        // Ensure we reload data for the new context
+        $this->load(true);
+
+        return $this;
+    }
+
+    /**
+     * Clear any polymorphic context.
+     *
+     * @return $this
+     */
+    public function clearContext()
+    {
+        $this->context = [];
+        $this->setExtraColumns([]);
+        $this->setConstraint(null);
+        $this->load(true);
+
+        return $this;
+    }
 
 	/**
 	 * {@inheritdoc}
